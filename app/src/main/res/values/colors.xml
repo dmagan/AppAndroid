@@ -1,0 +1,6 @@
+<resources>
+    <color name="colorPrimary">#517da2</color> <!-- رنگ نوار بالا -->
+    <color name="colorPrimaryDark">#517da2</color> <!-- رنگ نوار وضعیت بالا -->
+    <color name="colorAccent">#FF4081</color> <!-- رنگ تاکید -->
+    <color name="dividerColor">#DDDDDD</color> <!-- رنگ Divider -->
+</resources>
