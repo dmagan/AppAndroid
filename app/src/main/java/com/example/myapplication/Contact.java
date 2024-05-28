@@ -3,12 +3,14 @@ package com.example.myapplication;
 public class Contact {
     private String name;
     private String status;
-    private int imageResource;
+    private int startColor; // رنگ شروع گرادیانت
+    private int endColor;   // رنگ پایان گرادیانت
 
-    public Contact(String name, String status, int imageResource) {
+    public Contact(String name, String status, int startColor, int endColor) {
         this.name = name;
         this.status = status;
-        this.imageResource = imageResource;
+        this.startColor = startColor;
+        this.endColor = endColor;
     }
 
     public String getName() {
@@ -19,7 +21,11 @@ public class Contact {
         return status;
     }
 
-    public int getImageResource() {
-        return imageResource;
+    public int getStartColor() {
+        return startColor;
+    }
+
+    public int getEndColor() {
+        return endColor;
     }
 }

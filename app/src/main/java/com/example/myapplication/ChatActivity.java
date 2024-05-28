@@ -1,14 +1,18 @@
 package com.example.myapplication;
 
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import java.util.ArrayList;
@@ -35,15 +39,32 @@ public class ChatActivity extends AppCompatActivity {
         // تنظیم Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Chat");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); // نمایش دکمه بازگشت
         toolbar.setNavigationOnClickListener(v -> onBackPressed()); // عملکرد دکمه بازگشت
 
+        // تنظیم محتوای سفارشی نوار ابزار
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View customView = inflater.inflate(R.layout.toolbar_custom, toolbar, false);
+        toolbar.addView(customView);
+
+        ImageView userImageView = customView.findViewById(R.id.userImageView);
+        TextView userNameTextView = customView.findViewById(R.id.userNameTextView);
+
         // دریافت اطلاعات کاربر از Intent
         String userName = getIntent().getStringExtra("userName");
+        int startColor = getIntent().getIntExtra("startColor", ContextCompat.getColor(this, R.color.colorAccent));
+        int endColor = getIntent().getIntExtra("endColor", ContextCompat.getColor(this, R.color.colorAccent));
+
         if (userName != null) {
-            getSupportActionBar().setTitle(userName);
+            userNameTextView.setText(userName);
         }
+
+        // تنظیم گرادیان دایره‌ای
+        GradientDrawable gradient = new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{startColor, endColor});
+        gradient.setShape(GradientDrawable.OVAL);
+        userImageView.setBackground(gradient);
 
         // مقداردهی به ویوها
         recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
