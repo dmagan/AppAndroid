@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
@@ -59,6 +60,12 @@ public class MainActivity extends AppCompatActivity implements ClickListener {
 
     @Override
     public void onItemClick(int position) {
-        // اینجا کد مربوط به عملکرد کلیک روی آیتم را اضافه کنید
+        // دریافت اطلاعات کاربر
+        Contact contact = contactList.get(position);
+
+        // ایجاد Intent برای شروع ChatActivity
+        Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+        intent.putExtra("userName", contact.getName());
+        startActivity(intent);
     }
 }
