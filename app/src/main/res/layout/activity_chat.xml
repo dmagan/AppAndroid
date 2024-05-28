@@ -5,6 +5,15 @@
     android:layout_height="match_parent"
     tools:context=".ChatActivity">
 
+    <!-- ImageView برای تصویر پس‌زمینه -->
+    <ImageView
+        android:id="@+id/chatBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/chat_background"
+        android:contentDescription="@null" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewMessages"
         android:layout_width="match_parent"
