@@ -1,15 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".ChatActivity">
+
+    <!-- Toolbar برای صفحه چت -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ToolbarTheme"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <!-- ImageView برای تصویر پس‌زمینه -->
     <ImageView
         android:id="@+id/chatBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/toolbar"
         android:scaleType="centerCrop"
         android:src="@drawable/chat_background"
         android:contentDescription="@null" />
@@ -18,8 +31,8 @@
         android:id="@+id/recyclerViewMessages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_below="@id/toolbar"
         android:layout_above="@id/messageInputLayout"
-        android:layout_alignParentTop="true"
         android:padding="8dp"
         android:clipToPadding="false"
         android:scrollbars="none"/>
