@@ -1,16 +1,16 @@
 package com.example.myapplication;
 
-import android.graphics.drawable.GradientDrawable;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.List;
-import java.util.Random;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
 
@@ -32,9 +32,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         Message message = messageList.get(position);
 
         if (message.getImage() != null) {
+            holder.messageTextView.setVisibility(View.GONE);
             holder.messageImageView.setVisibility(View.VISIBLE);
             holder.imageStrokeView.setVisibility(View.VISIBLE);
-            holder.messageTextView.setVisibility(View.GONE);
             holder.messageImageView.setImageBitmap(message.getImage());
         } else {
             holder.messageTextView.setVisibility(View.VISIBLE);
