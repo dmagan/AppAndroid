@@ -1,13 +1,16 @@
 package com.example.myapplication;
 
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
+import java.util.Random;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
 
@@ -27,14 +30,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = messageList.get(position);
+
         if (message.getImage() != null) {
-            holder.imageView.setVisibility(View.VISIBLE);
-            holder.textView.setVisibility(View.GONE);
-            holder.imageView.setImageBitmap(message.getImage());
+            holder.messageImageView.setVisibility(View.VISIBLE);
+            holder.imageStrokeView.setVisibility(View.VISIBLE);
+            holder.messageTextView.setVisibility(View.GONE);
+            holder.messageImageView.setImageBitmap(message.getImage());
         } else {
-            holder.imageView.setVisibility(View.GONE);
-            holder.textView.setVisibility(View.VISIBLE);
-            holder.textView.setText(message.getText());
+            holder.messageTextView.setVisibility(View.VISIBLE);
+            holder.messageImageView.setVisibility(View.GONE);
+            holder.imageStrokeView.setVisibility(View.GONE);
+            holder.messageTextView.setText(message.getText());
         }
     }
 
@@ -44,13 +50,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     }
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
-        public TextView textView;
-        public ImageView imageView;
+        public TextView messageTextView;
+        public ImageView messageImageView;
+        public ImageView imageStrokeView;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
-            textView = itemView.findViewById(R.id.textMessage);
-            imageView = itemView.findViewById(R.id.imageMessage);
+            messageTextView = itemView.findViewById(R.id.textMessage);
+            messageImageView = itemView.findViewById(R.id.imageMessage);
+            imageStrokeView = itemView.findViewById(R.id.imageStroke);
         }
     }
 }
