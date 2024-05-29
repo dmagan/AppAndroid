@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,7 +27,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = messageList.get(position);
-        holder.textViewMessage.setText(message.getText());
+        if (message.getImage() != null) {
+            holder.imageView.setVisibility(View.VISIBLE);
+            holder.textView.setVisibility(View.GONE);
+            holder.imageView.setImageBitmap(message.getImage());
+        } else {
+            holder.imageView.setVisibility(View.GONE);
+            holder.textView.setVisibility(View.VISIBLE);
+            holder.textView.setText(message.getText());
+        }
     }
 
     @Override
@@ -35,11 +44,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     }
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
-        public TextView textViewMessage;
+        public TextView textView;
+        public ImageView imageView;
 
-        public MessageViewHolder(View itemView) {
+        public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
-            textViewMessage = itemView.findViewById(R.id.textViewMessage);
+            textView = itemView.findViewById(R.id.textMessage);
+            imageView = itemView.findViewById(R.id.imageMessage);
         }
     }
 }
