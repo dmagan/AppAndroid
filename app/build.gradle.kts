@@ -42,7 +42,8 @@ dependencies {
     implementation(libs.navigation.ui)
     implementation(libs.recyclerview)
     implementation(libs.activity)
-    implementation("androidx.cardview:cardview:1.0.0") // اضافه کردن وابستگی CardView
+    implementation("androidx.cardview:cardview:1.0.0")
+    implementation("com.github.MikeOrtiz:TouchImageView:3.0.5")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
