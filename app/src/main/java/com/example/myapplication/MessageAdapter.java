@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
@@ -31,13 +33,16 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = messageList.get(position);
 
-        if (message.getImage() != null) {
+        if (message.getImagePath() != null) {
             holder.messageTextView.setVisibility(View.GONE);
             holder.messageImageView.setVisibility(View.VISIBLE);
             holder.imageStrokeView.setVisibility(View.VISIBLE);
-            holder.messageImageView.setImageBitmap(message.getImage());
 
-            // تنظیم کلیک لیسنر برای نمایش تصویر در حالت تمام صفحه
+            // استفاده از Glide برای بارگذاری تصویر
+            Glide.with(holder.itemView.getContext())
+                    .load(message.getImagePath())
+                    .into(holder.messageImageView);
+
             holder.messageImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
