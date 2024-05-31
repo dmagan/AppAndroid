@@ -4,8 +4,9 @@ import android.graphics.Bitmap;
 
 public class Message {
     private String text;
-    private boolean isSent;
     private Bitmap image;
+    private boolean isSent;
+    private String imagePath; // مسیر تصویر
 
     public Message(String text, boolean isSent) {
         this.text = text;
@@ -16,8 +17,8 @@ public class Message {
         return text;
     }
 
-    public boolean isSent() {
-        return isSent;
+    public void setText(String text) {
+        this.text = text;
     }
 
     public Bitmap getImage() {
@@ -26,5 +27,21 @@ public class Message {
 
     public void setImage(Bitmap image) {
         this.image = image;
+    }
+
+    public boolean isSent() {
+        return isSent;
+    }
+
+    public void setSent(boolean sent) {
+        isSent = sent;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }

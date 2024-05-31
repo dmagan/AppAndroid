@@ -2,8 +2,12 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,12 +20,18 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.Window;
 import android.view.WindowManager;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -32,6 +42,8 @@ public class ChatActivity extends AppCompatActivity {
     private EditText editTextMessage;
     private Button buttonSend;
     private ImageButton buttonCamera;
+    private Uri photoURI;
+    private File photoFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,10 +121,37 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    private File createImageFile() throws IOException {
+        // ایجاد یک نام فایل منحصر به فرد
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // مسیر فایل را ذخیره کنید تا بعدا از آن استفاده کنید
+        return image;
+    }
+
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            // فایل جایی که عکس ذخیره می‌شود را ایجاد کنید
+            try {
+                photoFile = createImageFile();
+                if (photoFile != null) {
+                    photoURI = FileProvider.getUriForFile(this,
+                            "com.example.myapplication.fileprovider",
+                            photoFile);
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                }
+            } catch (IOException ex) {
+                // در صورت بروز خطا
+            }
         }
     }
 
@@ -120,14 +159,30 @@ public class ChatActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            // اضافه کردن عکس به لیست پیام‌ها
-            Message message = new Message(null, true);
-            message.setImage(imageBitmap);
-            messageList.add(message);
-            messageAdapter.notifyItemInserted(messageList.size() - 1);
-            recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+            new LoadImageTask().execute(photoFile.getAbsolutePath());
         }
     }
+
+
+    private class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+        @Override
+        protected Bitmap doInBackground(String... paths) {
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            return BitmapFactory.decodeFile(paths[0], bmOptions);
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (bitmap != null) {
+                // اضافه کردن عکس به لیست پیام‌ها
+                Message message = new Message(null, true);
+                message.setImage(bitmap);
+                message.setImagePath(photoFile.getAbsolutePath()); // ذخیره مسیر تصویر
+                messageList.add(message);
+                messageAdapter.notifyItemInserted(messageList.size() - 1);
+                recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+            }
+        }
+    }
+
 }
