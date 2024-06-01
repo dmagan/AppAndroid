@@ -37,6 +37,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             holder.messageTextView.setVisibility(View.GONE);
             holder.messageImageView.setVisibility(View.VISIBLE);
             holder.imageStrokeView.setVisibility(View.VISIBLE);
+            holder.timeStampTextView.setVisibility(View.VISIBLE);
+            holder.timeStampTextView.setText(message.getTimeStamp());
 
             // استفاده از Glide برای بارگذاری تصویر
             Glide.with(holder.itemView.getContext())
@@ -55,7 +57,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             holder.messageTextView.setVisibility(View.VISIBLE);
             holder.messageImageView.setVisibility(View.GONE);
             holder.imageStrokeView.setVisibility(View.GONE);
+            holder.timeStampTextView.setVisibility(View.VISIBLE);
             holder.messageTextView.setText(message.getText());
+            holder.timeStampTextView.setText(message.getTimeStamp());
         }
     }
 
@@ -68,12 +72,14 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         public TextView messageTextView;
         public ImageView messageImageView;
         public ImageView imageStrokeView;
+        public TextView timeStampTextView;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
             messageTextView = itemView.findViewById(R.id.textMessage);
             messageImageView = itemView.findViewById(R.id.imageMessage);
             imageStrokeView = itemView.findViewById(R.id.imageStroke);
+            timeStampTextView = itemView.findViewById(R.id.textTimeStamp);
         }
     }
 }

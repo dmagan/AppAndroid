@@ -7,10 +7,12 @@ public class Message {
     private Bitmap image;
     private boolean isSent;
     private String imagePath; // مسیر تصویر
+    private String timeStamp; // زمان ارسال پیام
 
-    public Message(String text, boolean isSent) {
+    public Message(String text, boolean isSent, String timeStamp) {
         this.text = text;
         this.isSent = isSent;
+        this.timeStamp = timeStamp;
     }
 
     public String getText() {
@@ -43,5 +45,13 @@ public class Message {
 
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
+    }
+
+    public String getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
     }
 }

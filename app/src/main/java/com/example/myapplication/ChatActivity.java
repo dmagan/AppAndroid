@@ -25,15 +25,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.Window;
 import android.view.WindowManager;
+
+import com.ibm.icu.util.Calendar;
+import com.ibm.icu.util.ULocale;
+import com.ibm.icu.text.SimpleDateFormat;
+
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import com.ibm.icu.util.Calendar;
-import com.ibm.icu.util.ULocale;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -105,20 +107,8 @@ public class ChatActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String messageText = editTextMessage.getText().toString().trim();
                 if (!messageText.isEmpty()) {
-                    // استفاده از ICU4J برای دریافت تاریخ و زمان شمسی
-                    Calendar calendar = Calendar.getInstance(new ULocale("fa_IR@calendar=persian"));
-                    String dateStr = String.format("%d/%02d/%02d %02d:%02d:%02d",
-                            calendar.get(Calendar.YEAR),
-                            calendar.get(Calendar.MONTH) + 1,
-                            calendar.get(Calendar.DAY_OF_MONTH),
-                            calendar.get(Calendar.HOUR_OF_DAY),
-                            calendar.get(Calendar.MINUTE),
-                            calendar.get(Calendar.SECOND));
-
-                    // افزودن تاریخ و زمان شمسی به پیام
-                    String fullMessage = messageText + "\n(" + dateStr + ")";
-
-                    Message message = new Message(fullMessage, true); // پیام ارسال شده توسط کاربر
+                    String timeStamp = getCurrentTime();
+                    Message message = new Message(messageText, true, timeStamp); // پیام ارسال شده توسط کاربر
                     messageList.add(message);
                     messageAdapter.notifyItemInserted(messageList.size() - 1);
                     recyclerViewMessages.scrollToPosition(messageList.size() - 1);
@@ -189,7 +179,8 @@ public class ChatActivity extends AppCompatActivity {
         protected void onPostExecute(Bitmap bitmap) {
             if (bitmap != null) {
                 // اضافه کردن عکس به لیست پیام‌ها
-                Message message = new Message(null, true);
+                String timeStamp = getCurrentTime();
+                Message message = new Message(null, true, timeStamp);
                 message.setImage(bitmap);
                 message.setImagePath(photoFile.getAbsolutePath()); // ذخیره مسیر تصویر
                 messageList.add(message);
@@ -197,5 +188,11 @@ public class ChatActivity extends AppCompatActivity {
                 recyclerViewMessages.scrollToPosition(messageList.size() - 1);
             }
         }
+    }
+
+    private String getCurrentTime() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", ULocale.getDefault());
+        return sdf.format(calendar.getTime());
     }
 }

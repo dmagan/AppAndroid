@@ -3,4 +3,5 @@
     <color name="colorPrimaryDark">#517da2</color> <!-- رنگ نوار وضعیت بالا -->
     <color name="colorAccent">#FF4081</color> <!-- رنگ تاکید -->
     <color name="dividerColor">#DDDDDD</color> <!-- رنگ Divider -->
+    <color name="grey">#C4EDEDED</color>
 </resources>
