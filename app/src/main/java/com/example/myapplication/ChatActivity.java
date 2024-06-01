@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import com.ibm.icu.util.Calendar;
+import com.ibm.icu.util.ULocale;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -103,7 +105,20 @@ public class ChatActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String messageText = editTextMessage.getText().toString().trim();
                 if (!messageText.isEmpty()) {
-                    Message message = new Message(messageText, true); // پیام ارسال شده توسط کاربر
+                    // استفاده از ICU4J برای دریافت تاریخ و زمان شمسی
+                    Calendar calendar = Calendar.getInstance(new ULocale("fa_IR@calendar=persian"));
+                    String dateStr = String.format("%d/%02d/%02d %02d:%02d:%02d",
+                            calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH) + 1,
+                            calendar.get(Calendar.DAY_OF_MONTH),
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            calendar.get(Calendar.SECOND));
+
+                    // افزودن تاریخ و زمان شمسی به پیام
+                    String fullMessage = messageText + "\n(" + dateStr + ")";
+
+                    Message message = new Message(fullMessage, true); // پیام ارسال شده توسط کاربر
                     messageList.add(message);
                     messageAdapter.notifyItemInserted(messageList.size() - 1);
                     recyclerViewMessages.scrollToPosition(messageList.size() - 1);
@@ -163,7 +178,6 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-
     private class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
         @Override
         protected Bitmap doInBackground(String... paths) {
@@ -184,5 +198,4 @@ public class ChatActivity extends AppCompatActivity {
             }
         }
     }
-
 }

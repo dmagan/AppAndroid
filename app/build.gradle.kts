@@ -52,6 +52,7 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.github.MikeOrtiz:TouchImageView:3.1.1")
     implementation("com.github.bumptech.glide:glide:4.13.2")
+    implementation("com.ibm.icu:icu4j:70.1")
     kapt("com.github.bumptech.glide:compiler:4.13.2")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
