@@ -9,9 +9,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -25,11 +26,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.Window;
 import android.view.WindowManager;
-
 import com.ibm.icu.util.Calendar;
 import com.ibm.icu.util.ULocale;
 import com.ibm.icu.text.SimpleDateFormat;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ public class ChatActivity extends AppCompatActivity {
     private MessageAdapter messageAdapter;
     private List<Message> messageList;
     private EditText editTextMessage;
-    private Button buttonSend;
+    private ImageButton buttonSendIcon;
     private ImageButton buttonCamera;
     private Uri photoURI;
     private File photoFile;
@@ -92,7 +91,7 @@ public class ChatActivity extends AppCompatActivity {
         // مقداردهی به ویوها
         recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
         editTextMessage = findViewById(R.id.editTextMessage);
-        buttonSend = findViewById(R.id.buttonSend);
+        buttonSendIcon = findViewById(R.id.buttonSendIcon);
         buttonCamera = findViewById(R.id.buttonCamera);
 
         // تنظیم RecyclerView
@@ -102,7 +101,7 @@ public class ChatActivity extends AppCompatActivity {
         recyclerViewMessages.setAdapter(messageAdapter);
 
         // تنظیم کلیک دکمه ارسال
-        buttonSend.setOnClickListener(new View.OnClickListener() {
+        buttonSendIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String messageText = editTextMessage.getText().toString().trim();
@@ -113,9 +112,34 @@ public class ChatActivity extends AppCompatActivity {
                     messageAdapter.notifyItemInserted(messageList.size() - 1);
                     recyclerViewMessages.scrollToPosition(messageList.size() - 1);
                     editTextMessage.setText("");
+
+                    // حذف دکمه ارسال پس از ارسال پیام
+                    buttonSendIcon.setVisibility(View.GONE);
                 }
             }
         });
+
+// اضافه کردن TextWatcher به EditText
+        editTextMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // نمایش دکمه ارسال وقتی که متن وارد شده است
+                if (s.length() > 0) {
+                    buttonSendIcon.setVisibility(View.VISIBLE);
+                } else {
+                    buttonSendIcon.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
 
         // تنظیم کلیک دکمه دوربین
         buttonCamera.setOnClickListener(new View.OnClickListener() {
