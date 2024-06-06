@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -36,6 +37,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class ChatActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -47,6 +52,7 @@ public class ChatActivity extends AppCompatActivity {
     private ImageButton buttonCamera;
     private Uri photoURI;
     private File photoFile;
+    private String userId = "665f548517eb80f08f098020"; // آی دی کاربر Mohammad
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +125,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-// اضافه کردن TextWatcher به EditText
+        // اضافه کردن TextWatcher به EditText
         editTextMessage.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -140,12 +146,37 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-
         // تنظیم کلیک دکمه دوربین
         buttonCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dispatchTakePictureIntent();
+            }
+        });
+
+        // دریافت پیام‌ها از سرور
+        getMessagesFromServer();
+    }
+
+    private void getMessagesFromServer() {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        Call<List<Message>> call = apiService.getMessages(userId);
+        call.enqueue(new Callback<List<Message>>() {
+            @Override
+            public void onResponse(Call<List<Message>> call, Response<List<Message>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    messageList.clear(); // ابتدا لیست را پاک می‌کنیم تا مطمئن شویم پیام‌های تکراری اضافه نشوند
+                    messageList.addAll(response.body());
+                    messageAdapter.notifyDataSetChanged();
+                    Log.d("ChatActivity", "Messages received: " + response.body().size());
+                } else {
+                    Log.e("ChatActivity", "Failed to receive messages. Response code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Message>> call, Throwable t) {
+                Log.e("ChatActivity", "Failed to receive messages", t);
             }
         });
     }

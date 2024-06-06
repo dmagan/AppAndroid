@@ -33,12 +33,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = messageList.get(position);
 
-        if (message.getImagePath() != null) {
+        if (message.getImagePath() != null && !message.getImagePath().isEmpty()) {
             holder.messageTextView.setVisibility(View.GONE);
             holder.cardViewMessage.setVisibility(View.VISIBLE);
             holder.messageImageView.setVisibility(View.VISIBLE);
             holder.imageStrokeView.setVisibility(View.VISIBLE);
-            holder.timeTextView.setVisibility(View.VISIBLE);
 
             // استفاده از Glide برای بارگذاری تصویر
             Glide.with(holder.itemView.getContext())
@@ -58,12 +57,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             holder.cardViewMessage.setVisibility(View.GONE);
             holder.messageImageView.setVisibility(View.GONE);
             holder.imageStrokeView.setVisibility(View.GONE);
-            holder.timeTextView.setVisibility(View.VISIBLE);
-            holder.messageTextView.setText(message.getText());
+            holder.messageTextView.setText(message.getMessage());
         }
 
         // نمایش زمان پیام
-        holder.timeTextView.setText(message.getTimeStamp());
+        holder.timeTextView.setText(message.getTimestamp());
     }
 
     @Override
