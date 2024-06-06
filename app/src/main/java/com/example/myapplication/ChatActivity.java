@@ -12,7 +12,11 @@ import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -40,6 +44,9 @@ import java.util.Locale;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -53,6 +60,8 @@ public class ChatActivity extends AppCompatActivity {
     private Uri photoURI;
     private File photoFile;
     private String userId = "665f548517eb80f08f098020"; // آی دی کاربر Mohammad
+    private ActionMode actionMode;
+    private int selectedPosition = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +111,7 @@ public class ChatActivity extends AppCompatActivity {
 
         // تنظیم RecyclerView
         messageList = new ArrayList<>();
-        messageAdapter = new MessageAdapter(messageList);
+        messageAdapter = new MessageAdapter(messageList, this);
         recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewMessages.setAdapter(messageAdapter);
 
@@ -249,5 +258,76 @@ public class ChatActivity extends AppCompatActivity {
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", ULocale.getDefault());
         return sdf.format(calendar.getTime());
+    }
+
+    // متدهای مرتبط با Contextual Action Mode
+
+    public void startActionModeForMessage(int position) {
+        if (actionMode != null) {
+            return;
+        }
+        selectedPosition = position;
+        actionMode = startActionMode(actionModeCallback);
+    }
+
+    private ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.contextual_action_bar, menu);
+            // تغییر رنگ نوار اکشن به سفید
+            MenuItem deleteItem = menu.findItem(R.id.action_delete);
+            if (deleteItem != null && deleteItem.getIcon() != null) {
+                deleteItem.getIcon().setTint(ContextCompat.getColor(ChatActivity.this, android.R.color.white));
+            }
+            return true;
+        }
+
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // بازگشت false باعث می‌شود که نوار اکشن به روز نشود.
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            if (item.getItemId() == R.id.action_delete) {
+                // حذف پیام از لیست و پایگاه داده
+                deleteMessage(selectedPosition);
+                mode.finish(); // بستن Action Mode
+                return true;
+            }
+            return false;
+        }
+
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            actionMode = null;
+            selectedPosition = -1;
+        }
+    };
+
+    private void deleteMessage(int position) {
+        Message message = messageList.get(position);
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        Call<Void> call = apiService.deleteMessage(userId, message.getId());
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    messageList.remove(position);
+                    messageAdapter.notifyItemRemoved(position);
+                    Log.d("ChatActivity", "Message deleted successfully");
+                } else {
+                    Log.e("ChatActivity", "Failed to delete message. Response code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("ChatActivity", "Failed to delete message", t);
+            }
+        });
     }
 }

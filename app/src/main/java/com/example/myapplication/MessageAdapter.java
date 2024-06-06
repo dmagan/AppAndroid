@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,9 +18,11 @@ import java.util.List;
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
 
     private List<Message> messageList;
+    private ChatActivity activity;
 
-    public MessageAdapter(List<Message> messageList) {
+    public MessageAdapter(List<Message> messageList, ChatActivity activity) {
         this.messageList = messageList;
+        this.activity = activity;
     }
 
     @NonNull
@@ -44,13 +47,10 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                     .load(message.getImagePath())
                     .into(holder.messageImageView);
 
-            holder.messageImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(v.getContext(), FullscreenImageActivity.class);
-                    intent.putExtra("image_path", message.getImagePath());
-                    v.getContext().startActivity(intent);
-                }
+            holder.messageImageView.setOnClickListener(v -> {
+                Intent intent = new Intent(holder.itemView.getContext(), FullscreenImageActivity.class);
+                intent.putExtra("image_path", message.getImagePath());
+                holder.itemView.getContext().startActivity(intent);
             });
         } else {
             holder.messageTextView.setVisibility(View.VISIBLE);
@@ -62,6 +62,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
         // نمایش زمان پیام
         holder.timeTextView.setText(message.getTimestamp());
+
+        // تنظیم long-press برای انتخاب پیام
+        holder.itemView.setOnLongClickListener(v -> {
+            activity.startActionModeForMessage(holder.getAdapterPosition());
+            return true;
+        });
     }
 
     @Override
