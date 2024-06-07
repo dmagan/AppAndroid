@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -38,15 +39,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -62,6 +62,10 @@ public class ChatActivity extends AppCompatActivity {
     private String userId = "665f548517eb80f08f098020"; // آی دی کاربر Mohammad
     private ActionMode actionMode;
     private int selectedPosition = -1;
+
+    private Handler handler;
+    private Runnable runnable;
+    private boolean shouldScrollToBottom = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,10 +126,8 @@ public class ChatActivity extends AppCompatActivity {
                 String messageText = editTextMessage.getText().toString().trim();
                 if (!messageText.isEmpty()) {
                     String timeStamp = getCurrentTime();
-                    Message message = new Message(messageText, true, timeStamp); // پیام ارسال شده توسط کاربر
-                    messageList.add(message);
-                    messageAdapter.notifyItemInserted(messageList.size() - 1);
-                    recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+                    MessageRequest messageRequest = new MessageRequest(messageText, null, true, timeStamp);
+                    sendMessageToServer(userId, messageRequest);
                     editTextMessage.setText("");
 
                     // حذف دکمه ارسال پس از ارسال پیام
@@ -165,6 +167,41 @@ public class ChatActivity extends AppCompatActivity {
 
         // دریافت پیام‌ها از سرور
         getMessagesFromServer();
+
+        // تنظیم Handler و Runnable برای به‌روزرسانی خودکار پیام‌ها
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                getMessagesFromServer();
+                handler.postDelayed(this, 1000); // هر 1 ثانیه بررسی می‌کند
+            }
+        };
+        handler.post(runnable); // شروع به کار Runnable
+    }
+
+    private void sendMessageToServer(String userId, MessageRequest messageRequest) {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        Call<Message> call = apiService.sendMessage(userId, messageRequest);
+        call.enqueue(new Callback<Message>() {
+            @Override
+            public void onResponse(Call<Message> call, Response<Message> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Message message = response.body();
+                    messageList.add(message);
+                    messageAdapter.notifyItemInserted(messageList.size() - 1);
+                    recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+                    Log.d("ChatActivity", "Message sent: " + message.getMessage());
+                } else {
+                    Log.e("ChatActivity", "Failed to send message. Response code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Message> call, Throwable t) {
+                Log.e("ChatActivity", "Failed to send message", t);
+            }
+        });
     }
 
     private void getMessagesFromServer() {
@@ -174,9 +211,21 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Message>> call, Response<List<Message>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    messageList.clear(); // ابتدا لیست را پاک می‌کنیم تا مطمئن شویم پیام‌های تکراری اضافه نشوند
-                    messageList.addAll(response.body());
-                    messageAdapter.notifyDataSetChanged();
+                    List<Message> newMessages = response.body();
+                    Set<String> currentMessageIds = new HashSet<>();
+                    for (Message message : messageList) {
+                        currentMessageIds.add(message.getId());
+                    }
+                    for (Message message : newMessages) {
+                        if (!currentMessageIds.contains(message.getId())) {
+                            messageList.add(message);
+                            messageAdapter.notifyItemInserted(messageList.size() - 1);
+                        }
+                    }
+                    if (shouldScrollToBottom) {
+                        recyclerViewMessages.scrollToPosition(messageList.size() - 1); // اسکرول به انتهای لیست فقط یک بار
+                        shouldScrollToBottom = false;
+                    }
                     Log.d("ChatActivity", "Messages received: " + response.body().size());
                 } else {
                     Log.e("ChatActivity", "Failed to receive messages. Response code: " + response.code());
@@ -244,12 +293,8 @@ public class ChatActivity extends AppCompatActivity {
             if (bitmap != null) {
                 // اضافه کردن عکس به لیست پیام‌ها
                 String timeStamp = getCurrentTime();
-                Message message = new Message(null, true, timeStamp);
-                message.setImage(bitmap);
-                message.setImagePath(photoFile.getAbsolutePath()); // ذخیره مسیر تصویر
-                messageList.add(message);
-                messageAdapter.notifyItemInserted(messageList.size() - 1);
-                recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+                MessageRequest messageRequest = new MessageRequest(null, photoFile.getAbsolutePath(), true, timeStamp);
+                sendMessageToServer(userId, messageRequest);
             }
         }
     }
@@ -283,7 +328,6 @@ public class ChatActivity extends AppCompatActivity {
             return true;
         }
 
-
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             return false; // بازگشت false باعث می‌شود که نوار اکشن به روز نشود.
@@ -299,7 +343,6 @@ public class ChatActivity extends AppCompatActivity {
             }
             return false;
         }
-
 
         @Override
         public void onDestroyActionMode(ActionMode mode) {
@@ -318,7 +361,7 @@ public class ChatActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     messageList.remove(position);
                     messageAdapter.notifyItemRemoved(position);
-                    Log.d("ChatActivity", "Message deleted successfully");
+                    Log.d("ChatActivity", "Message deleted: " + message.getId());
                 } else {
                     Log.e("ChatActivity", "Failed to delete message. Response code: " + response.code());
                 }
