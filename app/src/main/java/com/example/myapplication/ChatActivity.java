@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
@@ -243,20 +244,46 @@ public class ChatActivity extends AppCompatActivity {
             public void onResponse(Call<List<Message>> call, Response<List<Message>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Message> newMessages = response.body();
-                    Set<String> currentMessageIds = new HashSet<>();
-                    for (Message message : messageList) {
-                        currentMessageIds.add(message.getId());
-                    }
+                    Set<String> newMessageIds = new HashSet<>();
+                    boolean newMessageReceived = false;
+
                     for (Message message : newMessages) {
-                        if (!currentMessageIds.contains(message.getId())) {
-                            messageList.add(message);
-                            messageAdapter.notifyItemInserted(messageList.size() - 1);
+                        newMessageIds.add(message.getId());
+                    }
+
+                    // حذف پیام‌های موجود که دیگر در پیام‌های جدید نیستند
+                    for (int i = messageList.size() - 1; i >= 0; i--) {
+                        if (!newMessageIds.contains(messageList.get(i).getId())) {
+                            messageList.remove(i);
+                            messageAdapter.notifyItemRemoved(i);
                         }
                     }
+
+                    // اضافه کردن پیام‌های جدید که قبلا در لیست نبوده‌اند
+                    for (Message message : newMessages) {
+                        boolean exists = false;
+                        for (Message existingMessage : messageList) {
+                            if (existingMessage.getId().equals(message.getId())) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) {
+                            messageList.add(message);
+                            messageAdapter.notifyItemInserted(messageList.size() - 1);
+                            newMessageReceived = true;
+                        }
+                    }
+
                     if (shouldScrollToBottom) {
                         recyclerViewMessages.scrollToPosition(messageList.size() - 1); // اسکرول به انتهای لیست فقط یک بار
                         shouldScrollToBottom = false;
                     }
+
+                    if (newMessageReceived) {
+                        playNotificationSound();
+                    }
+
                     Log.d("ChatActivity", "Messages received: " + response.body().size());
                 } else {
                     Log.e("ChatActivity", "Failed to receive messages. Response code: " + response.code());
@@ -269,6 +296,19 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void playNotificationSound() {
+        MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.notification_sound); // نام فایل صوتی شما
+        mediaPlayer.start();
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mp.release();
+            }
+        });
+    }
+
+
 
     private File createImageFile() throws IOException {
         // ایجاد یک نام فایل منحصر به فرد
