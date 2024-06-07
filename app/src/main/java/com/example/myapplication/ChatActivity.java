@@ -23,6 +23,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -32,9 +34,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.Window;
 import android.view.WindowManager;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.ibm.icu.util.Calendar;
 import com.ibm.icu.util.ULocale;
 import com.ibm.icu.text.SimpleDateFormat;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,11 +70,36 @@ public class ChatActivity extends AppCompatActivity {
     private Handler handler;
     private Runnable runnable;
     private boolean shouldScrollToBottom = true;
+    private FloatingActionButton fabScrollToBottom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        fabScrollToBottom = findViewById(R.id.fabScrollToBottom);
+
+        // تنظیم اسکرول برای نمایش و مخفی کردن دکمه شناور
+        recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
+        recyclerViewMessages.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (!recyclerView.canScrollVertically(1)) {
+                    fabScrollToBottom.hide();
+                } else {
+                    fabScrollToBottom.show();
+                }
+            }
+        });
+
+        // تنظیم کلیک دکمه شناور برای اسکرول به پایین
+        fabScrollToBottom.setOnClickListener(v -> {
+            recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+        });
+
+        // دریافت پیام‌ها از سرور
+        getMessagesFromServer();
 
         // تغییر رنگ نوار وضعیت
         Window window = getWindow();
@@ -108,7 +137,6 @@ public class ChatActivity extends AppCompatActivity {
         userImageView.setBackground(gradient);
 
         // مقداردهی به ویوها
-        recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
         editTextMessage = findViewById(R.id.editTextMessage);
         buttonSendIcon = findViewById(R.id.buttonSendIcon);
         buttonCamera = findViewById(R.id.buttonCamera);
@@ -165,9 +193,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        // دریافت پیام‌ها از سرور
-        getMessagesFromServer();
-
         // تنظیم Handler و Runnable برای به‌روزرسانی خودکار پیام‌ها
         handler = new Handler();
         runnable = new Runnable() {
@@ -178,6 +203,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         };
         handler.post(runnable); // شروع به کار Runnable
+
     }
 
     private void sendMessageToServer(String userId, MessageRequest messageRequest) {
