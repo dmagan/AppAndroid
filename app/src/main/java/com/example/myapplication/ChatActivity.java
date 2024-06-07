@@ -7,7 +7,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.Editable;
@@ -23,7 +22,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,13 +30,12 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.view.Window;
 import android.view.WindowManager;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.ibm.icu.util.Calendar;
 import com.ibm.icu.util.ULocale;
 import com.ibm.icu.text.SimpleDateFormat;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import android.os.Environment;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -70,14 +68,13 @@ public class ChatActivity extends AppCompatActivity {
     private Handler handler;
     private Runnable runnable;
     private boolean shouldScrollToBottom = true;
-    private FloatingActionButton fabScrollToBottom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        fabScrollToBottom = findViewById(R.id.fabScrollToBottom);
+        FloatingActionButton fabScrollToBottom = findViewById(R.id.fabScrollToBottom);
 
         // تنظیم اسکرول برای نمایش و مخفی کردن دکمه شناور
         recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
@@ -95,11 +92,15 @@ public class ChatActivity extends AppCompatActivity {
 
         // تنظیم کلیک دکمه شناور برای اسکرول به پایین
         fabScrollToBottom.setOnClickListener(v -> {
-            recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+            RecyclerView.SmoothScroller smoothScroller = new CustomSmoothScroller(ChatActivity.this);
+            smoothScroller.setTargetPosition(messageList.size() - 1);
+            recyclerViewMessages.getLayoutManager().startSmoothScroll(smoothScroller);
         });
 
         // دریافت پیام‌ها از سرور
         getMessagesFromServer();
+
+        // Other code
 
         // تغییر رنگ نوار وضعیت
         Window window = getWindow();
@@ -137,6 +138,7 @@ public class ChatActivity extends AppCompatActivity {
         userImageView.setBackground(gradient);
 
         // مقداردهی به ویوها
+        recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
         editTextMessage = findViewById(R.id.editTextMessage);
         buttonSendIcon = findViewById(R.id.buttonSendIcon);
         buttonCamera = findViewById(R.id.buttonCamera);
@@ -192,6 +194,9 @@ public class ChatActivity extends AppCompatActivity {
                 dispatchTakePictureIntent();
             }
         });
+
+        // دریافت پیام‌ها از سرور
+        getMessagesFromServer();
 
         // تنظیم Handler و Runnable برای به‌روزرسانی خودکار پیام‌ها
         handler = new Handler();

@@ -12,6 +12,6 @@ public class CustomSmoothScroller extends LinearSmoothScroller {
 
     @Override
     protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
-        return 0.3f; // تنظیم سرعت اسکرول. مقدار کمتر به معنی سرعت بیشتر است.
+        return 0.05f; // تنظیم سرعت اسکرول. مقدار کمتر به معنی سرعت بیشتر است.
     }
 }
