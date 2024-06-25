@@ -50,6 +50,9 @@ import android.os.Environment;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -205,7 +208,7 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void run() {
                 getMessagesFromServer();
-                handler.postDelayed(this, 1000); // هر 1 ثانیه بررسی می‌کند
+                //  handler.postDelayed(this, 100000); // هر 1 ثانیه بررسی می‌کند
             }
         };
         handler.post(runnable); // شروع به کار Runnable
@@ -308,8 +311,6 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-
-
     private File createImageFile() throws IOException {
         // ایجاد یک نام فایل منحصر به فرد
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
@@ -353,8 +354,11 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+        private String imagePath;
+
         @Override
         protected Bitmap doInBackground(String... paths) {
+            imagePath = paths[0];
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
             return BitmapFactory.decodeFile(paths[0], bmOptions);
         }
@@ -364,10 +368,47 @@ public class ChatActivity extends AppCompatActivity {
             if (bitmap != null) {
                 // اضافه کردن عکس به لیست پیام‌ها
                 String timeStamp = getCurrentTime();
-                MessageRequest messageRequest = new MessageRequest(null, photoFile.getAbsolutePath(), true, timeStamp);
-                sendMessageToServer(userId, messageRequest);
+                Message tempMessage = new Message(null, false, timeStamp);
+                tempMessage.setImage(bitmap);
+                tempMessage.setImagePath(imagePath);
+                messageList.add(tempMessage);
+                messageAdapter.notifyItemInserted(messageList.size() - 1);
+                recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+
+                // سپس تصویر را به سرور ارسال کنید
+                sendMessageWithImage(userId, new File(imagePath), "");
             }
         }
+    }
+
+    private void sendMessageWithImage(String userId, File imageFile, String messageText) {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+
+        RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), imageFile);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("file", imageFile.getName(), requestFile);
+
+        RequestBody message = RequestBody.create(MediaType.parse("text/plain"), messageText);
+
+        Call<Message> call = apiService.sendMessageWithImage(userId, body, message);
+        call.enqueue(new Callback<Message>() {
+            @Override
+            public void onResponse(Call<Message> call, Response<Message> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Message message = response.body();
+                    messageList.add(message);
+                    messageAdapter.notifyItemInserted(messageList.size() - 1);
+                    recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+                    Log.d("ChatActivity", "Message sent: " + message.getMessage());
+                } else {
+                    Log.e("ChatActivity", "Failed to send message. Response code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Message> call, Throwable t) {
+                Log.e("ChatActivity", "Failed to send message", t);
+            }
+        });
     }
 
     private String getCurrentTime() {

@@ -73,4 +73,12 @@ public class Message {
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
+
+    // سازنده جدید برای پیام‌های موقت
+    public Message(String userId, Bitmap image, String timestamp) {
+        this.userId = userId;
+        this.image = image;
+        this.timestamp = timestamp;
+        this.isSent = false;
+    }
 }
